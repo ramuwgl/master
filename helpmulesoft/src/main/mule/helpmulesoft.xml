@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="helpmulesoftFlow" doc:id="8d811998-266d-4e44-ad34-576ee340fb34" >
+		<ee:transform doc:name="concat arrays into array" doc:id="7ad2ab46-ce2e-4f94-9aab-eb786ff603ec" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var in1=[
+	{'a':'aa'},
+	{'b': 'bb'}
+]
+var in2=[
+	{'c': 'cc'},
+	{'d':'dd'}
+]
+---
+{
+	out: in1 ++ in2
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Object to string" doc:id="a40cb9a8-a66f-4cc2-a608-2451a5fe67e2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var x={
+"field1": "A",
+"field2": "B",
+"field3": "C"
+}
+---
+{
+	accValues: x pluck $ reduce (item,acc="") -> acc ++ item,
+	values: x pluck $,
+	keys: x pluck $$,
+	indexs: x pluck $$$
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="c82028b7-6715-42f7-9033-5410df3fde05" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var in = [
+	{
+		"EmployeeId": "123",
+		"FullName": "ABC",
+		"RoleGroup": [
+			{
+				"RoleId": "Matrix_Manager",
+				"RoleName": "Matrix Manager",
+				"OrganizationId": "Qatar Matrix",
+				"OrganizationName": "Qatar"
+			},
+			{
+				"RoleId": "Matrix_Manager",
+				"RoleName": "Matrix Manager",
+				"OrganizationId": "Azerbaijan Matrix",
+				"OrganizationName": "Azerbaijan"
+			},
+			{
+				"RoleId": "Mission Chief",
+				"RoleName": "Mission Chief",
+				"OrganizationId": "Qatar Matrix",
+				"OrganizationName": "Qatar"
+			}
+		]
+	},
+	{
+		"EmployeeId": "456",
+		"FullName": "DEF",
+		"RoleGroup": [
+			{
+				"RoleId": "Matrix_Manager",
+				"RoleName": "SR Matrix Manager",
+				"OrganizationId": "Qatar Matrix",
+				"OrganizationName": "Qatar"
+			},
+			{
+				"RoleId": "Matrix_Manager",
+				"RoleName": "SR Matrix Manager",
+				"OrganizationId": "Azerbaijan Matrix",
+				"OrganizationName": "Azerbaijan"
+			},
+			{
+				"RoleId": "Mission Chief",
+				"RoleName": "Mission Chief",
+				"OrganizationId": "Qatar Matrix",
+				"OrganizationName": "Qatar"
+			}
+		]
+	},
+	{
+		"EmployeeId": "777",
+		"FullName": "DEF",
+		"RoleGroup": null
+	}
+]
+---
+in..OrganizationName distinctBy $ map ((empl,indexOfEmpl) ->
+{
+	OrganizationName: empl,
+	(in filter (($.RoleGroup filter $.OrganizationName == empl)!= []) map (fname,indexOfFName) ->
+		(FullName: {
+			Name: fname.FullName,
+			EmployeeId: fname.EmployeeId,
+			(RoleName: (fname.RoleGroup filter ($.OrganizationName == empl)).RoleName distinctBy $) if fname.RoleGroup != null
+				}) if (fname.RoleGroup != null))
+}) ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="fc5d76d7-d129-4008-8a99-5da1ab696c63" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var arr={'b':'bb'}
+
+---
+{
+	out: arr pluck ((value, key, index) -> {
+		(index) : key ++ value
+	})
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
